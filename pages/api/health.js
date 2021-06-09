@@ -73,8 +73,7 @@ const handler = async (req, res) => {
    * Variable "today" is a date set based on the device date at midninight
    * This will be used as way to timestamp our documents in the database
    */
-  const today = new Date(`${deviceDate}`);
-  // console.log("today", today);
+  const today = new Date(`${deviceDate}T00:00:00.000Z`);
 
   const entry = {
     heartRate: formattedHeartData,
