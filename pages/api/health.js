@@ -1,3 +1,5 @@
+import Status from "http-status-codes";
+
 /**
  * Format the sample to a more friendly data structure
  * @param {values: string; timestamps: string;} entry
@@ -44,6 +46,16 @@ const graphQLClient = new GraphQLClient(URI, {
  * @param {NowResponse} res
  */
 const handler = async (req, res) => {
+  if (req.method !== "POST") {
+    return res.status(Status.BAD_REQUEST).send({ error: "Bad request" });
+  }
+
+  const key = req.headers[`x-key`];
+
+  if (key !== process.env.API_KEY) {
+    return res.status(Status.FORBIDDEN).json({ error: "Unauthorized" });
+  }
+
   /**
    * Destructure the body of the request based on the payload defined in the shortcut
    */
@@ -81,7 +93,7 @@ const handler = async (req, res) => {
     date: today.toISOString(),
   };
 
-  console.log(entry);
+  // console.log(entry);
 
   const mutation = gql`
     mutation ($entries: [EntryInput]) {
@@ -108,13 +120,15 @@ const handler = async (req, res) => {
     );
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ response: error.response.errors[0].message });
+    return res
+      .status(Status.SERVICE_UNAVAILABLE)
+      .json({ response: error.response.errors[0].message });
   }
 
-  return res.status(200).json({
+  return res.status(Status.OK).json({
     response: {
       date: today.toISOString(),
-      heart: `${formattedHeartData.length} items`,
+      heart: `${formattedHeartData.length}`,
       steps: `${formattedStepsData.filter((item) => item.value !== 0).length}`,
     },
   });
